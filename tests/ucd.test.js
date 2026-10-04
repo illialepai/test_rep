@@ -1,6 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { codePointLabel, codePoints, loadUnicodeDatabase, parseConfusables, parseRangeFile, parseUnicodeData } from "../src/engine/ucd.js";
+import {
+  codePointLabel,
+  codePoints,
+  loadUnicodeDatabase,
+  parseConfusables,
+  parseRangeFile,
+  parseUnicodeData,
+} from "../src/engine/ucd.js";
 import { VariantIndex, RELATION } from "../src/engine/variants.js";
 
 const ucd = loadUnicodeDatabase();
@@ -52,7 +59,9 @@ test("UTS #39 skeleton maps confusables to their prototypes", () => {
 });
 
 test("parsers handle the file formats", () => {
-  const { records, ranges } = parseUnicodeData("0041;LATIN CAPITAL LETTER A;Lu;0;L;;;;;N;;;;0061;\n4E00;<CJK Ideograph, First>;Lo;0;L;;;;;N;;;;;\n9FFF;<CJK Ideograph, Last>;Lo;0;L;;;;;N;;;;;\n");
+  const { records, ranges } = parseUnicodeData(
+    "0041;LATIN CAPITAL LETTER A;Lu;0;L;;;;;N;;;;0061;\n4E00;<CJK Ideograph, First>;Lo;0;L;;;;;N;;;;;\n9FFF;<CJK Ideograph, Last>;Lo;0;L;;;;;N;;;;;\n",
+  );
   assert.equal(records.get(0x41).lower, 0x61);
   assert.deepEqual(ranges[0], { start: 0x4e00, end: 0x9fff, label: "CJK Ideograph", gc: "Lo", ccc: 0, bidi: "L" });
   assert.deepEqual(parseRangeFile("0000..001F ; Common # Cc\n0041 ; Latin\n"), [

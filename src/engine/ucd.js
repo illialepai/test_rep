@@ -32,8 +32,59 @@ export function codePoints(str) {
 
 // Hangul syllable names are algorithmic (Unicode §3.12), so UnicodeData.txt only lists the range.
 const JAMO_L = ["G", "GG", "N", "D", "DD", "R", "M", "B", "BB", "S", "SS", "", "J", "JJ", "C", "K", "T", "P", "H"];
-const JAMO_V = ["A", "AE", "YA", "YAE", "EO", "E", "YEO", "YE", "O", "WA", "WAE", "OE", "YO", "U", "WEO", "WE", "WI", "YU", "EU", "YI", "I"];
-const JAMO_T = ["", "G", "GG", "GS", "N", "NJ", "NH", "D", "L", "LG", "LM", "LB", "LS", "LT", "LP", "LH", "M", "B", "BS", "S", "SS", "NG", "J", "C", "K", "T", "P", "H"];
+const JAMO_V = [
+  "A",
+  "AE",
+  "YA",
+  "YAE",
+  "EO",
+  "E",
+  "YEO",
+  "YE",
+  "O",
+  "WA",
+  "WAE",
+  "OE",
+  "YO",
+  "U",
+  "WEO",
+  "WE",
+  "WI",
+  "YU",
+  "EU",
+  "YI",
+  "I",
+];
+const JAMO_T = [
+  "",
+  "G",
+  "GG",
+  "GS",
+  "N",
+  "NJ",
+  "NH",
+  "D",
+  "L",
+  "LG",
+  "LM",
+  "LB",
+  "LS",
+  "LT",
+  "LP",
+  "LH",
+  "M",
+  "B",
+  "BS",
+  "S",
+  "SS",
+  "NG",
+  "J",
+  "C",
+  "K",
+  "T",
+  "P",
+  "H",
+];
 
 function hangulName(cp) {
   const s = cp - 0xac00;
@@ -97,7 +148,14 @@ export function parseUnicodeData(text) {
       continue;
     }
     if (name.endsWith(", Last>") && pendingFirst) {
-      ranges.push({ start: pendingFirst.cp, end: cp, label: pendingFirst.label, gc: base.gc, ccc: base.ccc, bidi: base.bidi });
+      ranges.push({
+        start: pendingFirst.cp,
+        end: cp,
+        label: pendingFirst.label,
+        gc: base.gc,
+        ccc: base.ccc,
+        bidi: base.bidi,
+      });
       pendingFirst = null;
       continue;
     }
@@ -162,7 +220,17 @@ export class UnicodeDatabase {
     if (rec) return rec;
     for (const r of this.ranges) {
       if (cp >= r.start && cp <= r.end) {
-        return { cp, name: rangeName(r.label, cp), gc: r.gc, ccc: r.ccc, bidi: r.bidi, decompTag: null, decomposition: null, upper: null, lower: null };
+        return {
+          cp,
+          name: rangeName(r.label, cp),
+          gc: r.gc,
+          ccc: r.ccc,
+          bidi: r.bidi,
+          decompTag: null,
+          decomposition: null,
+          upper: null,
+          lower: null,
+        };
       }
     }
     return null;

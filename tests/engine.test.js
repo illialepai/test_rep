@@ -1,12 +1,19 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 import { getEngine, InputError, LIMITS } from "../src/engine/engine.js";
-import { compatibilityLabel, PLATFORM_RULES, readability, stability, transformationScore } from "../src/engine/scoring.js";
+import {
+  compatibilityLabel,
+  PLATFORM_RULES,
+  readability,
+  stability,
+  transformationScore,
+} from "../src/engine/scoring.js";
 
 const engine = getEngine();
 const pool = (desired, opts = {}) => engine.transform(desired, { count: LIMITS.maxCount, ...opts });
 const strings = (result) => result.candidates.map((c) => c.string);
-const cps = (str) => Array.from(str, (ch) => "U+" + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")).join(" ");
+const cps = (str) =>
+  Array.from(str, (ch) => "U+" + ch.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")).join(" ");
 
 function assertCandidateShape(c, desired) {
   assert.notEqual(c.string, desired, "never returns the desired string itself");
@@ -17,7 +24,8 @@ function assertCandidateShape(c, desired) {
   assert.equal(c.normalization.nfc, c.string.normalize("NFC"));
   assert.equal(c.normalization.nfkc, c.string.normalize("NFKC"));
   assert.equal(c.normalization.nfkcStable, c.string.normalize("NFKC") === c.string);
-  for (const key of ["similarity", "characterCompatibility", "readability", "stability"]) assert.ok(c[key] >= 0 && c[key] <= 1, `${key} in 0..1`);
+  for (const key of ["similarity", "characterCompatibility", "readability", "stability"])
+    assert.ok(c[key] >= 0 && c[key] <= 1, `${key} in 0..1`);
   assert.ok(c.compatibility.score >= 0 && c.compatibility.score <= 100);
   assert.equal(c.compatibility.label, compatibilityLabel(c.compatibility.score));
   assert.ok(c.transformed >= 1, "at least one character transformed");
@@ -35,7 +43,8 @@ describe("one-character inputs", () => {
   test("k → math, fullwidth, small capital, superscript … variants", () => {
     const r = pool("k");
     const s = strings(r);
-    for (const expected of ["𝗄", "ｋ", "𝐤", "ᴋ", "ᵏ", "ₖ", "ķ", "ⓚ"]) assert.ok(s.includes(expected), `has ${expected} (${cps(expected)})`);
+    for (const expected of ["𝗄", "ｋ", "𝐤", "ᴋ", "ᵏ", "ₖ", "ķ", "ⓚ"])
+      assert.ok(s.includes(expected), `has ${expected} (${cps(expected)})`);
     assert.ok(!s.includes("k"));
     assert.ok(!s.includes("K"), "KELVIN SIGN is K, not k");
     for (const c of r.candidates) assertCandidateShape(c, "k");
@@ -44,7 +53,10 @@ describe("one-character inputs", () => {
     assert.ok(top.similarity >= 0.95);
     assert.equal(top.normalization.nfkcEqualsDesired, true);
     assert.ok(top.compatibility.notes.some((n) => /NFKC/.test(n.text)));
-    assert.ok(top.compatibility.notes.some((n) => /shorter than TikTok/.test(n.text)), "1 character is below the documented minimum");
+    assert.ok(
+      top.compatibility.notes.some((n) => /shorter than TikTok/.test(n.text)),
+      "1 character is below the documented minimum",
+    );
   });
 
   test("8 → Bengali/Gurmukhi digits, Latin OU and math digits", () => {
@@ -83,7 +95,9 @@ describe("multiple-character inputs", () => {
     assert.ok(s.includes("аlex"), "Cyrillic а only");
     assert.ok(s.includes("aleх"), "Cyrillic х only");
     // Mixed relations inside one candidate (not one style forced on every character).
-    const mixed = r.candidates.find((c) => new Set(c.segments.filter((x) => x.changed).map((x) => x.relation)).size > 1);
+    const mixed = r.candidates.find(
+      (c) => new Set(c.segments.filter((x) => x.changed).map((x) => x.relation)).size > 1,
+    );
     assert.ok(mixed, "a candidate mixes different relations");
     // Fully transformed candidates exist too.
     assert.ok(r.candidates.some((c) => c.transformed === 4));
@@ -164,7 +178,10 @@ describe("unsupported characters", () => {
   test("right-to-left look-alikes are excluded for left-to-right targets", () => {
     const r = pool("l");
     const bidi = (ch) => engine.ucd.get(ch.codePointAt(0)).bidi;
-    assert.ok(!r.candidates.some((c) => [...c.string].some((ch) => ["R", "AL", "AN"].includes(bidi(ch)))), "no R, AL or AN characters");
+    assert.ok(
+      !r.candidates.some((c) => [...c.string].some((ch) => ["R", "AL", "AN"].includes(bidi(ch)))),
+      "no R, AL or AN characters",
+    );
     assert.ok(!strings(r).includes("ו"), "HEBREW LETTER VAV is excluded");
     assert.ok(r.analysis.characters[0].excluded.some((x) => /Right-to-left/.test(x.reason)));
   });

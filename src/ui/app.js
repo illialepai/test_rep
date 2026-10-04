@@ -83,7 +83,8 @@ function setStatus(stateName, text) {
 
 function showMessages(list) {
   clear(els.messages);
-  for (const { level, text } of list) els.messages.append(h("p", { class: `msg msg-${level}`, role: level === "error" ? "alert" : null }, text));
+  for (const { level, text } of list)
+    els.messages.append(h("p", { class: `msg msg-${level}`, role: level === "error" ? "alert" : null }, text));
 }
 
 let toastTimer;
@@ -141,9 +142,16 @@ async function runTransform(event) {
     const messages = data.notices.map((text) => ({ level: "info", text }));
     if (data.analysis.unsupported.length) {
       const list = data.analysis.unsupported.map((u) => `“${u.char}” ${u.codePoint} ${u.name}`).join(", ");
-      messages.push({ level: "warn", text: `No visible Unicode alternatives for ${list}. ${data.total ? "These characters stay as typed." : ""}` });
+      messages.push({
+        level: "warn",
+        text: `No visible Unicode alternatives for ${list}. ${data.total ? "These characters stay as typed." : ""}`,
+      });
     }
-    if (!data.total) messages.push({ level: "error", text: `No candidates: no character of “${data.desired}” has a visible Unicode alternative.` });
+    if (!data.total)
+      messages.push({
+        level: "error",
+        text: `No candidates: no character of “${data.desired}” has a visible Unicode alternative.`,
+      });
     showMessages(messages);
     render();
   } catch (error) {
@@ -167,9 +175,18 @@ async function generateMore() {
     const known = new Set(state.candidates.map((c) => c.id));
     const fresh = data.candidates.filter((c) => !known.has(c.id)).slice(0, PAGE);
     state.candidates.push(...fresh);
-    Object.assign(state, { depth: data.depth, count: state.candidates.length, total: data.total, hasMore: data.hasMore && fresh.length > 0 });
+    Object.assign(state, {
+      depth: data.depth,
+      count: state.candidates.length,
+      total: data.total,
+      hasMore: data.hasMore && fresh.length > 0,
+    });
     render();
-    toast(fresh.length ? `Added ${fresh.length} more candidate${fresh.length === 1 ? "" : "s"}.` : "No further candidates found.");
+    toast(
+      fresh.length
+        ? `Added ${fresh.length} more candidate${fresh.length === 1 ? "" : "s"}.`
+        : "No further candidates found.",
+    );
   } catch (error) {
     showMessages([{ level: "error", text: error.message }]);
   } finally {
@@ -178,7 +195,17 @@ async function generateMore() {
 }
 
 function clearAll() {
-  Object.assign(state, { desired: "", candidates: [], analysis: null, total: 0, depth: 1, count: PAGE, hasMore: false, rejected: new Set(), accepted: null });
+  Object.assign(state, {
+    desired: "",
+    candidates: [],
+    analysis: null,
+    total: 0,
+    depth: 1,
+    count: PAGE,
+    hasMore: false,
+    rejected: new Set(),
+    accepted: null,
+  });
   els.desired.value = "";
   showMessages([]);
   setPipeline("idle");
@@ -225,7 +252,9 @@ function rendered(c) {
 }
 
 function sortedCandidates() {
-  return [...state.candidates].sort((a, b) => Number(state.rejected.has(a.id)) - Number(state.rejected.has(b.id)) || SORTS[state.sort](a, b));
+  return [...state.candidates].sort(
+    (a, b) => Number(state.rejected.has(a.id)) - Number(state.rejected.has(b.id)) || SORTS[state.sort](a, b),
+  );
 }
 
 // ---- rendering -----------------------------------------------------------------------------------------
@@ -243,10 +272,20 @@ function renderResults() {
   if (!list.length) {
     els.summary.textContent = "";
     if (state.analysis) els.resultsEmpty.textContent = `No candidates for “${state.desired}”.`;
-    else els.resultsEmpty.replaceChildren("Enter a desired username and press ", h("strong", {}, "Transform"), ". Candidates appear here, ranked.");
+    else
+      els.resultsEmpty.replaceChildren(
+        "Enter a desired username and press ",
+        h("strong", {}, "Transform"),
+        ". Candidates appear here, ranked.",
+      );
     return;
   }
-  const sortName = { rank: "overall rank", similarity: "visual similarity", rendered: "rendered match on this computer", compatibility: "compatibility" }[state.sort];
+  const sortName = {
+    rank: "overall rank",
+    similarity: "visual similarity",
+    rendered: "rendered match on this computer",
+    compatibility: "compatibility",
+  }[state.sort];
   els.summary.textContent = `Showing ${list.length} of ${state.total} candidates for @${state.desired} · sorted by ${sortName}`;
   els.cards.append(...list.map(renderCard));
 }
@@ -261,7 +300,14 @@ function renderCard(c) {
   const underlying = h(
     "div",
     { class: "cp-strip", "aria-label": "Underlying Unicode" },
-    c.codePoints.map((cp) => h("span", { class: `cp${cp.changed ? " changed" : ""}`, title: `${cp.codePoint} ${cp.name} (${cp.script})` }, h("span", { class: "cp-char" }, cp.char), h("span", { class: "cp-code" }, cp.codePoint))),
+    c.codePoints.map((cp) =>
+      h(
+        "span",
+        { class: `cp${cp.changed ? " changed" : ""}`, title: `${cp.codePoint} ${cp.name} (${cp.script})` },
+        h("span", { class: "cp-char" }, cp.char),
+        h("span", { class: "cp-code" }, cp.codePoint),
+      ),
+    ),
   );
 
   const norm = c.normalization;
@@ -272,14 +318,33 @@ function renderCard(c) {
 
   const card = h(
     "article",
-    { class: `card${rejected ? " is-rejected" : ""}${accepted ? " is-accepted" : ""}`, dataset: { id: c.id }, "aria-label": `Candidate ${c.rank}` },
+    {
+      class: `card${rejected ? " is-rejected" : ""}${accepted ? " is-accepted" : ""}`,
+      dataset: {
+        id: c.id,
+        rank: c.rank,
+        similarity: c.similarity,
+        compat: c.compatibility.score,
+        rendered: match.toFixed(4),
+      },
+      "aria-label": `Candidate ${c.rank}`,
+    },
     h(
       "header",
       { class: "card-head" },
       h("span", { class: "rank" }, `#${c.rank}`),
       h("span", { class: "chip chip-sim" }, `${pct(c.similarity)} · ${c.similarityLabel}`),
       h("span", { class: `chip ${compatClass(c.compatibility.label)}` }, `Compatibility: ${c.compatibility.label}`),
-      match < RENDER_WARNING && h("span", { class: "chip chip-warn", title: "Drawn with this computer's fonts, it looks clearly different from the target or shows a missing-glyph box." }, "Looks different here"),
+      match < RENDER_WARNING &&
+        h(
+          "span",
+          {
+            class: "chip chip-warn",
+            title:
+              "Drawn with this computer's fonts, it looks clearly different from the target or shows a missing-glyph box.",
+          },
+          "Looks different here",
+        ),
       rejected && h("span", { class: "chip chip-rejected" }, "Rejected by TikTok"),
       accepted && h("span", { class: "chip chip-accepted" }, "You reported: accepted"),
     ),
@@ -287,7 +352,12 @@ function renderCard(c) {
       "div",
       { class: "visual" },
       h("span", { class: "visual-label" }, "Visual result"),
-      h("div", { class: "preview" }, h("span", { class: "preview-at" }, "@"), h("span", { class: "preview-text" }, c.string)),
+      h(
+        "div",
+        { class: "preview" },
+        h("span", { class: "preview-at" }, "@"),
+        h("span", { class: "preview-text" }, c.string),
+      ),
       h("span", { class: "visual-target" }, `target @${state.desired}`),
     ),
     h(
@@ -297,10 +367,31 @@ function renderCard(c) {
       fact("Similarity", h("span", { class: "metric" }, bar(c.similarity, "bar-sim"), h("b", {}, pct(c.similarity)))),
       fact(
         "Rendered match",
-        h("span", { class: "metric", title: "Ink overlap with the target when drawn with this computer's fonts. Other devices (and TikTok) may draw it differently." }, bar(match, "bar-render"), h("b", {}, pct(match)), h("span", { class: "faint" }, "on this computer")),
+        h(
+          "span",
+          {
+            class: "metric",
+            title:
+              "Ink overlap with the target when drawn with this computer's fonts. Other devices (and TikTok) may draw it differently.",
+          },
+          bar(match, "bar-render"),
+          h("b", {}, pct(match)),
+          h("span", { class: "faint" }, "on this computer"),
+        ),
       ),
-      fact("Compatibility", h("span", { class: "metric" }, bar(c.compatibility.score / 100, compatClass(c.compatibility.label)), h("b", {}, `${c.compatibility.label} · ${c.compatibility.score}/100`))),
-      fact("Characters", `${c.counts.codePoints} code point${c.counts.codePoints === 1 ? "" : "s"} · ${c.counts.utf16Units} UTF-16 · ${c.counts.graphemes} visible · ${c.counts.utf8Bytes} bytes`),
+      fact(
+        "Compatibility",
+        h(
+          "span",
+          { class: "metric" },
+          bar(c.compatibility.score / 100, compatClass(c.compatibility.label)),
+          h("b", {}, `${c.compatibility.label} · ${c.compatibility.score}/100`),
+        ),
+      ),
+      fact(
+        "Characters",
+        `${c.counts.codePoints} code point${c.counts.codePoints === 1 ? "" : "s"} · ${c.counts.utf16Units} UTF-16 · ${c.counts.graphemes} visible · ${c.counts.utf8Bytes} bytes`,
+      ),
       fact("Normalized", normText),
       fact("Transformed", `${c.transformed} of ${c.length} · ${relations || "—"}`),
     ),
@@ -308,21 +399,47 @@ function renderCard(c) {
     h(
       "details",
       { class: "more" },
-      h("summary", {}, `Ranking details and ${c.compatibility.notes.filter((n) => n.level === "warn").length} warnings`),
+      h(
+        "summary",
+        {},
+        `Ranking details and ${c.compatibility.notes.filter((n) => n.level === "warn").length} warnings`,
+      ),
       h(
         "ul",
         { class: "scores" },
-        h("li", {}, `Rank score ${c.rankScore.toFixed(3)} · readability ${pct(c.readability)} · Unicode stability ${pct(c.stability)} · character compatibility ${pct(c.characterCompatibility)}`),
-        h("li", {}, `Scripts: ${c.scripts.length ? c.scripts.join(", ") : "Common only"} · UTS #39 skeleton matches the target`),
-        c.segments.filter((s) => s.changed).map((s) => h("li", {}, `“${s.target}” → “${s.output}”: ${s.relation}, ${pct(s.similarity)} similar`)),
+        h(
+          "li",
+          {},
+          `Rank score ${c.rankScore.toFixed(3)} · readability ${pct(c.readability)} · Unicode stability ${pct(c.stability)} · character compatibility ${pct(c.characterCompatibility)}`,
+        ),
+        h(
+          "li",
+          {},
+          `Scripts: ${c.scripts.length ? c.scripts.join(", ") : "Common only"} · UTS #39 skeleton matches the target`,
+        ),
+        c.segments
+          .filter((s) => s.changed)
+          .map((s) => h("li", {}, `“${s.target}” → “${s.output}”: ${s.relation}, ${pct(s.similarity)} similar`)),
       ),
-      h("ul", { class: "notes" }, c.compatibility.notes.map((n) => h("li", { class: `note note-${n.level}` }, n.text))),
+      h(
+        "ul",
+        { class: "notes" },
+        c.compatibility.notes.map((n) => h("li", { class: `note note-${n.level}` }, n.text)),
+      ),
     ),
     h(
       "footer",
       { class: "card-actions" },
-      h("button", { type: "button", class: "btn btn-ghost", "data-action": "copy", onclick: () => copyCandidate(c) }, "Copy"),
-      h("button", { type: "button", class: "btn btn-primary", "data-action": "use", onclick: () => useCandidate(c) }, "Use this candidate"),
+      h(
+        "button",
+        { type: "button", class: "btn btn-ghost", "data-action": "copy", onclick: () => copyCandidate(c) },
+        "Copy",
+      ),
+      h(
+        "button",
+        { type: "button", class: "btn btn-primary", "data-action": "use", onclick: () => useCandidate(c) },
+        "Use this candidate",
+      ),
     ),
   );
   if (changedCount === 0) card.classList.add("is-unchanged");
@@ -335,21 +452,37 @@ function fact(label, value) {
 
 function codePointTable(c) {
   return h(
-    "table",
-    { class: "cp-table" },
-    h("thead", {}, h("tr", {}, h("th", {}, "Char"), h("th", {}, "Code point"), h("th", {}, "Name"), h("th", {}, "Script"), h("th", {}, "Since"))),
+    "div",
+    { class: "cp-table-wrap" },
     h(
-      "tbody",
-      {},
-      c.codePoints.map((cp) =>
+      "table",
+      { class: "cp-table" },
+      h(
+        "thead",
+        {},
         h(
           "tr",
-          { class: cp.changed ? "changed" : "" },
-          h("td", { class: "cp-table-char" }, cp.char),
-          h("td", { class: "mono" }, cp.codePoint),
-          h("td", {}, cp.name),
-          h("td", {}, cp.script),
-          h("td", {}, cp.age ? `Unicode ${cp.age}` : "—"),
+          {},
+          h("th", {}, "Char"),
+          h("th", {}, "Code point"),
+          h("th", {}, "Name"),
+          h("th", {}, "Script"),
+          h("th", { title: "Unicode version that added the character" }, "Since"),
+        ),
+      ),
+      h(
+        "tbody",
+        {},
+        c.codePoints.map((cp) =>
+          h(
+            "tr",
+            { class: cp.changed ? "changed" : "" },
+            h("td", { class: "cp-table-char" }, cp.char),
+            h("td", { class: "mono" }, cp.codePoint),
+            h("td", {}, cp.name),
+            h("td", {}, cp.script),
+            h("td", {}, cp.age ? String(cp.age) : "—"),
+          ),
         ),
       ),
     ),
@@ -378,7 +511,11 @@ function renderAnalysis() {
         },
         h("span", { class: "tile-glyph" }, ch.char),
         h("span", { class: "tile-code" }, ch.codePoint),
-        h("span", { class: "tile-count" }, ch.supported ? `${ch.variantCount} variant${ch.variantCount === 1 ? "" : "s"}` : "no alternatives"),
+        h(
+          "span",
+          { class: "tile-count" },
+          ch.supported ? `${ch.variantCount} variant${ch.variantCount === 1 ? "" : "s"}` : "no alternatives",
+        ),
       ),
     );
   });
@@ -400,7 +537,13 @@ function renderAnalysis() {
     ),
   );
   if (!ch.variants.length) {
-    els.detail.append(h("p", { class: "placeholder" }, "The Unicode database has no visible alternative for this character. It stays as typed in every candidate."));
+    els.detail.append(
+      h(
+        "p",
+        { class: "placeholder" },
+        "The Unicode database has no visible alternative for this character. It stays as typed in every candidate.",
+      ),
+    );
   } else {
     els.detail.append(
       h(
@@ -409,7 +552,17 @@ function renderAnalysis() {
         h(
           "table",
           { class: "variant-table" },
-          h("thead", {}, h("tr", {}, ["Variant", "Code points", "Relation", "Similarity", "Similar?", "Compat.", "NFKC"].map((t) => h("th", {}, t)))),
+          h(
+            "thead",
+            {},
+            h(
+              "tr",
+              {},
+              ["Variant", "Code points", "Relation", "Similarity", "Similar?", "Compat.", "NFKC"].map((t) =>
+                h("th", {}, t),
+              ),
+            ),
+          ),
           h(
             "tbody",
             {},
@@ -432,11 +585,29 @@ function renderAnalysis() {
     );
   }
   if (ch.excluded.length) {
-    els.detail.append(h("details", { class: "excluded" }, h("summary", {}, `${ch.excluded.length} excluded`), h("ul", {}, ch.excluded.map((x) => h("li", {}, `${x.string} ${x.codePoint} ${x.name}: ${x.reason}`)))));
+    els.detail.append(
+      h(
+        "details",
+        { class: "excluded" },
+        h("summary", {}, `${ch.excluded.length} excluded`),
+        h(
+          "ul",
+          {},
+          ch.excluded.map((x) => h("li", {}, `${x.string} ${x.codePoint} ${x.name}: ${x.reason}`)),
+        ),
+      ),
+    );
   }
   const seq = a.sequences.filter((s) => s.target.includes(ch.char));
   if (seq.length) {
-    els.detail.append(h("p", { class: "sequences" }, "Multi-character replacements: ", seq.map((s) => `“${s.string}” for “${s.target}” (${s.codePoints.join(" ")})`).join(", ")));
+    els.detail.append(
+      h(
+        "p",
+        { class: "sequences" },
+        "Multi-character replacements: ",
+        seq.map((s) => `“${s.string}” for “${s.target}” (${s.codePoints.join(" ")})`).join(", "),
+      ),
+    );
   }
 }
 
@@ -451,10 +622,14 @@ async function copyCandidate(c) {
 
 async function copyAll() {
   const lines = sortedCandidates().map(
-    (c) => `${c.string}\t${c.codePoints.map((x) => x.codePoint).join(" ")}\tsimilarity ${pct(c.similarity)}\tcompatibility ${c.compatibility.label}`,
+    (c) =>
+      `${c.string}\t${c.codePoints.map((x) => x.codePoint).join(" ")}\tsimilarity ${pct(c.similarity)}\tcompatibility ${c.compatibility.label}`,
   );
   const result = await copyText(lines.join("\n"), api.clipboard);
-  toast(result.copied ? `Copied ${lines.length} candidates.` : "Couldn't copy automatically.", result.copied ? "info" : "error");
+  toast(
+    result.copied ? `Copied ${lines.length} candidates.` : "Couldn't copy automatically.",
+    result.copied ? "info" : "error",
+  );
 }
 
 // ---- submission flow -----------------------------------------------------------------------------------
@@ -468,7 +643,12 @@ async function useCandidate(c) {
   state.active = c;
   clear(els.outcome);
   els.dialogCandidate.replaceChildren(
-    h("div", { class: "preview preview-small" }, h("span", { class: "preview-at" }, "@"), h("span", { class: "preview-text" }, c.string)),
+    h(
+      "div",
+      { class: "preview preview-small" },
+      h("span", { class: "preview-at" }, "@"),
+      h("span", { class: "preview-text" }, c.string),
+    ),
     h("div", { class: "mono dialog-cps" }, c.codePoints.map((x) => x.codePoint).join(" ")),
   );
   setStep(els.stepCopy, "running", "Copying…");
@@ -478,7 +658,13 @@ async function useCandidate(c) {
   // Copy first: the clipboard needs the click's user activation.
   const copied = await copyText(c.string, api.clipboard);
   if (copied.copied) setStep(els.stepCopy, "done", `Copied to your clipboard: “${c.string}”.`);
-  else setStep(els.stepCopy, "error", "Couldn't copy automatically. Select this and copy it: ", h("input", { class: "manual-copy", readonly: true, value: c.string, onfocus: (e) => e.target.select() }));
+  else
+    setStep(
+      els.stepCopy,
+      "error",
+      "Couldn't copy automatically. Select this and copy it: ",
+      h("input", { class: "manual-copy", readonly: true, value: c.string, onfocus: (e) => e.target.select() }),
+    );
 
   await openTikTok();
 }
@@ -488,9 +674,27 @@ async function openTikTok() {
   try {
     const r = await api.open({ purpose: "edit", existing: state.existing });
     const again = h("button", { type: "button", class: "btn btn-ghost btn-small", onclick: openTikTok }, "Open again");
-    if (r.opened) setStep(els.stepOpen, "done", "Opened in your default browser: ", h("code", { class: "url" }, r.url), " ", again);
-    else setStep(els.stepOpen, "error", "Couldn't open your browser automatically. Go to ", h("code", { class: "url" }, r.url), " ", again);
-    if (!state.existing) els.stepOpen.querySelector(".step-body").append(h("div", { class: "hint" }, "No existing username given, so TikTok's home page opened. Click Profile to get to Edit profile."));
+    if (r.opened)
+      setStep(els.stepOpen, "done", "Opened in your default browser: ", h("code", { class: "url" }, r.url), " ", again);
+    else
+      setStep(
+        els.stepOpen,
+        "error",
+        "Couldn't open your browser automatically. Go to ",
+        h("code", { class: "url" }, r.url),
+        " ",
+        again,
+      );
+    if (!state.existing)
+      els.stepOpen
+        .querySelector(".step-body")
+        .append(
+          h(
+            "div",
+            { class: "hint" },
+            "No existing username given, so TikTok's home page opened. Click Profile to get to Edit profile.",
+          ),
+        );
   } catch (error) {
     setStep(els.stepOpen, "error", error.message);
   }
@@ -503,7 +707,11 @@ function reportRejected() {
   if (state.accepted === c.id) state.accepted = null;
   els.outcome.replaceChildren(
     h("p", { class: "msg msg-error", role: "alert" }, REJECTED_MESSAGE),
-    h("button", { type: "button", class: "btn btn-primary", "data-action": "return", onclick: backToList }, "Return to candidate list"),
+    h(
+      "button",
+      { type: "button", class: "btn btn-primary", "data-action": "return", onclick: backToList },
+      "Return to candidate list",
+    ),
   );
   renderResults();
 }
@@ -514,8 +722,23 @@ function reportAccepted() {
   state.accepted = c.id;
   state.rejected.delete(c.id);
   els.outcome.replaceChildren(
-    h("p", { class: "msg msg-info" }, `You reported that TikTok accepted “${c.string}”. This app can't confirm it; your TikTok profile is the only proof. Check that it shows the new username.`),
-    h("button", { type: "button", class: "btn btn-ghost", onclick: () => api.open({ purpose: "verify", username: c.string }).then((r) => toast(r.opened ? "Opened the profile in your browser." : `Go to ${r.url}`)) }, "Open the new profile to check"),
+    h(
+      "p",
+      { class: "msg msg-info" },
+      `You reported that TikTok accepted “${c.string}”. This app can't confirm it; your TikTok profile is the only proof. Check that it shows the new username.`,
+    ),
+    h(
+      "button",
+      {
+        type: "button",
+        class: "btn btn-ghost",
+        onclick: () =>
+          api
+            .open({ purpose: "verify", username: c.string })
+            .then((r) => toast(r.opened ? "Opened the profile in your browser." : `Go to ${r.url}`)),
+      },
+      "Open the new profile to check",
+    ),
   );
   renderResults();
 }
@@ -555,7 +778,14 @@ els.quit.addEventListener("click", async () => {
   } catch {
     // already stopped
   }
-  document.body.replaceChildren(h("main", { class: "stopped" }, h("h1", {}, "The machine has stopped."), h("p", {}, "You can close this window. Run npm start to use it again.")));
+  document.body.replaceChildren(
+    h(
+      "main",
+      { class: "stopped" },
+      h("h1", {}, "The machine has stopped."),
+      h("p", {}, "You can close this window. Run npm start to use it again."),
+    ),
+  );
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {

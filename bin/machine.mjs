@@ -37,7 +37,8 @@ function parseArgs(argv) {
     else if (a.startsWith("--port=")) opts.port = Number(a.slice(7));
     else throw new Error(`Unknown option: ${a}`);
   }
-  if (!Number.isInteger(opts.port) || opts.port < 0 || opts.port > 65535) throw new Error("--port must be a number from 0 to 65535");
+  if (!Number.isInteger(opts.port) || opts.port < 0 || opts.port > 65535)
+    throw new Error("--port must be a number from 0 to 65535");
   return opts;
 }
 

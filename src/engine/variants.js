@@ -257,7 +257,16 @@ export class VariantIndex {
       // ſ (LONG S) normalizes to "s" but looks like "f": when UTS #39 says the glyph resembles something
       // other than its NFKC text, the NFKC relation is weak.
       if (proto !== undefined && skeleton !== key) styleSimilarity *= 0.4;
-      this.add(this.baseEntry(cp, { key, base: nfkc, relation: RELATION.COMPATIBILITY, tag: rec.decompTag, family, styleSimilarity }));
+      this.add(
+        this.baseEntry(cp, {
+          key,
+          base: nfkc,
+          relation: RELATION.COMPATIBILITY,
+          tag: rec.decompTag,
+          family,
+          styleSimilarity,
+        }),
+      );
     } else if (nfd !== char) {
       const [baseCp, ...marks] = codePoints(nfd);
       const base = String.fromCodePoint(baseCp);
@@ -279,7 +288,16 @@ export class VariantIndex {
     // A styled form (𝐤) is also listed in confusables.txt under the same key; the style relation is the
     // more precise description of how it looks, so the confusable entry is only added for other keys.
     if (proto !== undefined && this.allVisible(proto) && structuralKey !== skeleton) {
-      this.add(this.baseEntry(cp, { key: skeleton, base: char, relation: RELATION.CONFUSABLE, tag: null, family: "Plain", styleSimilarity: 1 }));
+      this.add(
+        this.baseEntry(cp, {
+          key: skeleton,
+          base: char,
+          relation: RELATION.CONFUSABLE,
+          tag: null,
+          family: "Plain",
+          styleSimilarity: 1,
+        }),
+      );
     }
 
     this.indexByName(cp, name, rec);
@@ -309,7 +327,14 @@ export class VariantIndex {
     if (m) {
       const base = m[2];
       this.add(
-        this.baseEntry(cp, { key: ucd.skeleton(base), base, relation: RELATION.ENCLOSED, tag: null, family: `Negative ${m[1].toLowerCase()}`, styleSimilarity: 0.28 }),
+        this.baseEntry(cp, {
+          key: ucd.skeleton(base),
+          base,
+          relation: RELATION.ENCLOSED,
+          tag: null,
+          family: `Negative ${m[1].toLowerCase()}`,
+          styleSimilarity: 0.28,
+        }),
       );
       return;
     }

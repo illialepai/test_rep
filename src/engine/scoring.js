@@ -16,9 +16,37 @@ export const PLATFORM_RULES = {
 
 /** UAX #31 Table 5, "Recommended Scripts" (plus Common/Inherited). Other scripts are limited-use or historic. */
 export const RECOMMENDED_SCRIPTS = new Set([
-  "Common", "Inherited", "Arabic", "Armenian", "Bengali", "Bopomofo", "Cyrillic", "Devanagari", "Ethiopic",
-  "Georgian", "Greek", "Gujarati", "Gurmukhi", "Han", "Hangul", "Hebrew", "Hiragana", "Kannada", "Katakana",
-  "Khmer", "Lao", "Latin", "Malayalam", "Myanmar", "Oriya", "Sinhala", "Tamil", "Telugu", "Thaana", "Thai", "Tibetan",
+  "Common",
+  "Inherited",
+  "Arabic",
+  "Armenian",
+  "Bengali",
+  "Bopomofo",
+  "Cyrillic",
+  "Devanagari",
+  "Ethiopic",
+  "Georgian",
+  "Greek",
+  "Gujarati",
+  "Gurmukhi",
+  "Han",
+  "Hangul",
+  "Hebrew",
+  "Hiragana",
+  "Kannada",
+  "Katakana",
+  "Khmer",
+  "Lao",
+  "Latin",
+  "Malayalam",
+  "Myanmar",
+  "Oriya",
+  "Sinhala",
+  "Tamil",
+  "Telugu",
+  "Thaana",
+  "Thai",
+  "Tibetan",
 ]);
 
 const EMOJI = /\p{Emoji}/u;
@@ -96,7 +124,8 @@ export function compatibilityEstimate(ucd, candidate, desired, charScores) {
   const chars = [...candidate];
 
   const outside = chars.filter((c) => !PLATFORM_RULES.documentedCharacters.test(c.toLowerCase()));
-  if (outside.length === 0) notes.push({ level: "good", text: "Uses only a–z, 0–9, _ and . (TikTok's documented character set)." });
+  if (outside.length === 0)
+    notes.push({ level: "good", text: "Uses only a–z, 0–9, _ and . (TikTok's documented character set)." });
   else {
     // Only plain a–z/0–9/_/. can reach "High": TikTok documents nothing else.
     score = Math.min(score, 60);
@@ -109,16 +138,28 @@ export function compatibilityEstimate(ucd, candidate, desired, charScores) {
   const scripts = letterScripts(ucd, candidate);
   if (scripts.length > 1) {
     score *= 0.65;
-    notes.push({ level: "warn", text: `Mixes scripts (${scripts.join(" + ")}). Many platforms block mixed-script names to prevent look-alikes.` });
+    notes.push({
+      level: "warn",
+      text: `Mixes scripts (${scripts.join(" + ")}). Many platforms block mixed-script names to prevent look-alikes.`,
+    });
   }
 
-  const limited = [...new Set(chars.map((c) => ucd.script(c.codePointAt(0))).filter((s) => !RECOMMENDED_SCRIPTS.has(s)))];
-  if (limited.length) notes.push({ level: "warn", text: `Uses a limited-use or historic script (${limited.join(", ")}); many devices have no font for it.` });
+  const limited = [
+    ...new Set(chars.map((c) => ucd.script(c.codePointAt(0))).filter((s) => !RECOMMENDED_SCRIPTS.has(s))),
+  ];
+  if (limited.length)
+    notes.push({
+      level: "warn",
+      text: `Uses a limited-use or historic script (${limited.join(", ")}); many devices have no font for it.`,
+    });
 
   const nfkc = candidate.normalize("NFKC");
   if (nfkc === desired.normalize("NFKC")) {
     score *= 0.75;
-    notes.push({ level: "warn", text: `Compatibility normalization (NFKC) turns it back into "${desired}". A platform that normalizes would treat it as that exact username.` });
+    notes.push({
+      level: "warn",
+      text: `Compatibility normalization (NFKC) turns it back into "${desired}". A platform that normalizes would treat it as that exact username.`,
+    });
   } else if (nfkc !== candidate) {
     notes.push({ level: "info", text: `Contains compatibility characters: NFKC changes it to "${nfkc}".` });
   }
@@ -127,20 +168,32 @@ export function compatibilityEstimate(ucd, candidate, desired, charScores) {
   if (lower !== candidate) {
     if (ucd.skeleton(lower) !== ucd.skeleton(desired.toLowerCase())) {
       score *= 0.75;
-      notes.push({ level: "warn", text: `The look depends on capital letters. If the platform lowercases usernames it becomes "${lower}".` });
+      notes.push({
+        level: "warn",
+        text: `The look depends on capital letters. If the platform lowercases usernames it becomes "${lower}".`,
+      });
     } else {
-      notes.push({ level: "info", text: "Contains capital letters; platforms that lowercase usernames keep the same look." });
+      notes.push({
+        level: "info",
+        text: "Contains capital letters; platforms that lowercase usernames keep the same look.",
+      });
     }
   }
 
   const length = chars.length;
   if (length < PLATFORM_RULES.minLength) {
     score *= 0.6;
-    notes.push({ level: "warn", text: `${length} character${length === 1 ? "" : "s"}: shorter than TikTok's documented ${PLATFORM_RULES.minLength}-character minimum.` });
+    notes.push({
+      level: "warn",
+      text: `${length} character${length === 1 ? "" : "s"}: shorter than TikTok's documented ${PLATFORM_RULES.minLength}-character minimum.`,
+    });
   }
   if (length > PLATFORM_RULES.maxLength) {
     score *= 0.5;
-    notes.push({ level: "warn", text: `Longer than TikTok's documented ${PLATFORM_RULES.maxLength}-character maximum.` });
+    notes.push({
+      level: "warn",
+      text: `Longer than TikTok's documented ${PLATFORM_RULES.maxLength}-character maximum.`,
+    });
   }
   if (candidate.endsWith(".")) {
     score *= 0.5;
@@ -148,10 +201,18 @@ export function compatibilityEstimate(ucd, candidate, desired, charScores) {
   }
 
   const astral = chars.filter((c) => c.codePointAt(0) > 0xffff).length;
-  if (astral) notes.push({ level: "info", text: `${astral} character${astral === 1 ? " is" : "s are"} outside the Basic Multilingual Plane (2 UTF-16 units each).` });
+  if (astral)
+    notes.push({
+      level: "info",
+      text: `${astral} character${astral === 1 ? " is" : "s are"} outside the Basic Multilingual Plane (2 UTF-16 units each).`,
+    });
 
   const recent = chars.filter((c) => (ucd.age(c.codePointAt(0)) ?? 0) >= 10);
-  if (recent.length) notes.push({ level: "warn", text: "Uses characters added in Unicode 10 or later. Older phones may show them as empty boxes." });
+  if (recent.length)
+    notes.push({
+      level: "warn",
+      text: "Uses characters added in Unicode 10 or later. Older phones may show them as empty boxes.",
+    });
 
   if (chars.some((c) => EMOJI.test(c) && !EMOJI_SAFE.test(c))) {
     score *= 0.8;
@@ -162,7 +223,15 @@ export function compatibilityEstimate(ucd, candidate, desired, charScores) {
   return { score, label: compatibilityLabel(score), notes };
 }
 
-const BASELINE_FAMILIES = new Set(["Superscript", "Subscript", "Small capital", "Circled", "Squared", "Negative circled", "Negative squared"]);
+const BASELINE_FAMILIES = new Set([
+  "Superscript",
+  "Subscript",
+  "Small capital",
+  "Circled",
+  "Squared",
+  "Negative circled",
+  "Negative squared",
+]);
 
 /** 0–1: whether the result reads as one consistent word (same style family, same baseline and size). */
 export function readability(families) {
@@ -203,7 +272,14 @@ export const SECONDARY_SHARE = 0.3;
  * candidates that look about equally close, but never lift a visibly different candidate above a
  * near-identical one.
  */
-export function rankScore({ similarity, characterCompatibility, transformation, readability, stability, compatibilityEstimate }) {
+export function rankScore({
+  similarity,
+  characterCompatibility,
+  transformation,
+  readability,
+  stability,
+  compatibilityEstimate,
+}) {
   const w = SECONDARY_WEIGHTS;
   const secondary =
     w.characterCompatibility * characterCompatibility +

@@ -21,7 +21,8 @@
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
   --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   /* Previews use the platform UI font, like the TikTok apps, plus wide-coverage fallbacks. */
-  --preview: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Math",
+  --preview:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Noto Sans Math",
     "Noto Sans Symbols 2", "Segoe UI Symbol", "Apple Symbols", sans-serif;
   color-scheme: dark;
 }
@@ -42,8 +43,7 @@ body {
   min-height: 100vh;
   background:
     radial-gradient(900px 400px at 85% -10%, rgba(255, 79, 139, 0.07), transparent 70%),
-    radial-gradient(800px 380px at 5% -10%, rgba(94, 240, 224, 0.06), transparent 70%),
-    var(--bg);
+    radial-gradient(800px 380px at 5% -10%, rgba(94, 240, 224, 0.06), transparent 70%), var(--bg);
 }
 
 button,
@@ -94,6 +94,11 @@ kbd {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.brand > div {
   min-width: 0;
 }
 
@@ -869,6 +874,13 @@ kbd {
 
 .cp-table th {
   white-space: nowrap;
+}
+
+.cp-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
 }
 
 .bar-fill {

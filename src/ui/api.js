@@ -22,7 +22,8 @@ async function post(path, body) {
     throw new ApiError("The machine isn't running. Start it again with npm start.");
   }
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new ApiError(data.error?.message ?? `Request failed (${res.status}).`, { status: res.status, ...data.error });
+  if (!res.ok)
+    throw new ApiError(data.error?.message ?? `Request failed (${res.status}).`, { status: res.status, ...data.error });
   return data;
 }
 

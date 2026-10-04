@@ -46,7 +46,9 @@ function run(command, args, { spawnImpl = spawn, input, env, timeoutMs = 5000, d
       done({ ok: true, timedOut: true });
     }, timeoutMs);
     child.on("error", (error) => done({ ok: false, error: error.message }));
-    child.on("exit", (code) => done(code === 0 ? { ok: true } : { ok: false, error: `${command} exited with code ${code}` }));
+    child.on("exit", (code) =>
+      done(code === 0 ? { ok: true } : { ok: false, error: `${command} exited with code ${code}` }),
+    );
     if (input !== undefined) {
       child.stdin.on("error", () => {});
       child.stdin.end(input);
@@ -89,13 +91,36 @@ export async function copyText(text, { platform = process.platform, spawnImpl } 
 }
 
 const APP_BROWSERS = {
-  darwin: ["Google Chrome.app/Contents/MacOS/Google Chrome", "Microsoft Edge.app/Contents/MacOS/Microsoft Edge", "Chromium.app/Contents/MacOS/Chromium", "Brave Browser.app/Contents/MacOS/Brave Browser"],
-  win32: ["Google\\Chrome\\Application\\chrome.exe", "Microsoft\\Edge\\Application\\msedge.exe", "BraveSoftware\\Brave-Browser\\Application\\brave.exe", "Chromium\\Application\\chrome.exe"],
-  linux: ["google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "microsoft-edge", "microsoft-edge-stable", "brave-browser"],
+  darwin: [
+    "Google Chrome.app/Contents/MacOS/Google Chrome",
+    "Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    "Chromium.app/Contents/MacOS/Chromium",
+    "Brave Browser.app/Contents/MacOS/Brave Browser",
+  ],
+  win32: [
+    "Google\\Chrome\\Application\\chrome.exe",
+    "Microsoft\\Edge\\Application\\msedge.exe",
+    "BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+    "Chromium\\Application\\chrome.exe",
+  ],
+  linux: [
+    "google-chrome",
+    "google-chrome-stable",
+    "chromium",
+    "chromium-browser",
+    "microsoft-edge",
+    "microsoft-edge-stable",
+    "brave-browser",
+  ],
 };
 
 /** Path of a Chromium-based browser that supports --app windows, or null. */
-export function findAppBrowser({ platform = process.platform, env = process.env, exists = existsSync, home = homedir() } = {}) {
+export function findAppBrowser({
+  platform = process.platform,
+  env = process.env,
+  exists = existsSync,
+  home = homedir(),
+} = {}) {
   if (env.MACHINE_APP_BROWSER) return exists(env.MACHINE_APP_BROWSER) ? env.MACHINE_APP_BROWSER : null;
   let candidates;
   if (platform === "darwin") {
@@ -112,13 +137,25 @@ export function findAppBrowser({ platform = process.platform, env = process.env,
 
 /** Folder for the app window's own browser profile (window size etc.). Holds no TikTok data. */
 export function appDataDir({ platform = process.platform, env = process.env, home = homedir() } = {}) {
-  if (platform === "win32") return join(env.APPDATA ?? join(home, "AppData", "Roaming"), "UsernameTransformationMachine");
+  if (platform === "win32")
+    return join(env.APPDATA ?? join(home, "AppData", "Roaming"), "UsernameTransformationMachine");
   if (platform === "darwin") return join(home, "Library", "Application Support", "UsernameTransformationMachine");
   return join(env.XDG_CONFIG_HOME ?? join(home, ".config"), "username-transformation-machine");
 }
 
-export function appWindowArgs(url, profileDir, { platform = process.platform, isRoot = process.getuid?.() === 0 } = {}) {
-  const args = [`--app=${url}`, `--user-data-dir=${profileDir}`, "--no-first-run", "--no-default-browser-check", "--window-size=1380,920", "--disable-features=Translate"];
+export function appWindowArgs(
+  url,
+  profileDir,
+  { platform = process.platform, isRoot = process.getuid?.() === 0 } = {},
+) {
+  const args = [
+    `--app=${url}`,
+    `--user-data-dir=${profileDir}`,
+    "--no-first-run",
+    "--no-default-browser-check",
+    "--window-size=1380,920",
+    "--disable-features=Translate",
+  ];
   // Chromium refuses to start as root on Linux without this (containers, CI). Never needed for normal users.
   if (platform === "linux" && isRoot) args.push("--no-sandbox");
   return args;

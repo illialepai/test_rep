@@ -46,7 +46,8 @@ function send(res, status, body, type = TYPES[".json"]) {
 }
 
 async function readJson(req) {
-  if (!/^application\/json\b/.test(req.headers["content-type"] ?? "")) throw new HttpError(415, "Expected application/json.");
+  if (!/^application\/json\b/.test(req.headers["content-type"] ?? ""))
+    throw new HttpError(415, "Expected application/json.");
   let size = 0;
   const chunks = [];
   for await (const chunk of req) {
@@ -70,11 +71,18 @@ async function readJson(req) {
  * @param {string} [options.token]
  * @param {Function} [options.onQuit]
  */
-export function createMachineServer({ engine, system = defaultSystem, token = randomBytes(24).toString("hex"), onQuit = () => {} }) {
+export function createMachineServer({
+  engine,
+  system = defaultSystem,
+  token = randomBytes(24).toString("hex"),
+  onQuit = () => {},
+}) {
   const server = createServer((req, res) => {
     handle(req, res).catch((error) => {
-      if (error instanceof InputError) return send(res, 400, { error: { message: error.message, field: error.field, code: error.code } });
-      if (error instanceof HttpError) return send(res, error.status, { error: { message: error.message, ...error.extra } });
+      if (error instanceof InputError)
+        return send(res, 400, { error: { message: error.message, field: error.field, code: error.code } });
+      if (error instanceof HttpError)
+        return send(res, error.status, { error: { message: error.message, ...error.extra } });
       console.error(error);
       send(res, 500, { error: { message: "Internal error. See the terminal for details." } });
     });
@@ -104,13 +112,18 @@ export function createMachineServer({ engine, system = defaultSystem, token = ra
 
     if (req.method !== "POST") throw new HttpError(405, "Method not allowed.");
     const origin = req.headers.origin;
-    if (origin && !hosts.map((h) => `http://${h}`).includes(origin)) throw new HttpError(403, "Cross-origin request refused.");
+    if (origin && !hosts.map((h) => `http://${h}`).includes(origin))
+      throw new HttpError(403, "Cross-origin request refused.");
     if (req.headers["x-machine-token"] !== token) throw new HttpError(403, "Missing or wrong session token.");
     const body = await readJson(req);
 
     switch (path) {
       case "/api/transform":
-        return send(res, 200, engine.transform(body.desired, { existing: body.existing, count: body.count, depth: body.depth }));
+        return send(
+          res,
+          200,
+          engine.transform(body.desired, { existing: body.existing, count: body.count, depth: body.depth }),
+        );
       case "/api/analyze":
         return send(res, 200, engine.analyze(body.desired));
       case "/api/open": {
@@ -123,7 +136,8 @@ export function createMachineServer({ engine, system = defaultSystem, token = ra
         return send(res, 200, { url: target, opened: result.opened, error: result.error ?? null });
       }
       case "/api/clipboard": {
-        if (typeof body.text !== "string" || !body.text || body.text.length > 20000) throw new HttpError(400, "Nothing to copy.");
+        if (typeof body.text !== "string" || !body.text || body.text.length > 20000)
+          throw new HttpError(400, "Nothing to copy.");
         return send(res, 200, await system.copyText(body.text));
       }
       case "/api/quit":
@@ -149,8 +163,16 @@ export function createMachineServer({ engine, system = defaultSystem, token = ra
     return {
       app: "Username Transformation Machine",
       engine: engine.stats(),
-      limits: { maxDesiredLength: LIMITS.maxDesiredLength, maxDepth: LIMITS.maxDepth, defaultCount: LIMITS.defaultCount },
-      platformRules: { minLength: PLATFORM_RULES.minLength, maxLength: PLATFORM_RULES.maxLength, characters: "a–z, 0–9, _ and ." },
+      limits: {
+        maxDesiredLength: LIMITS.maxDesiredLength,
+        maxDepth: LIMITS.maxDepth,
+        defaultCount: LIMITS.defaultCount,
+      },
+      platformRules: {
+        minLength: PLATFORM_RULES.minLength,
+        maxLength: PLATFORM_RULES.maxLength,
+        characters: "a–z, 0–9, _ and .",
+      },
     };
   }
 

@@ -19,7 +19,9 @@
         </div>
       </div>
       <div class="topbar-right">
-        <span id="engine-status" class="engine-status" data-state="loading"><span class="dot"></span><span>Starting</span></span>
+        <span id="engine-status" class="engine-status" data-state="loading"
+          ><span class="dot"></span><span>Starting</span></span
+        >
         <button id="quit" type="button" class="btn btn-ghost btn-small">Quit</button>
       </div>
     </header>
@@ -28,16 +30,37 @@
       <section class="panel console" aria-labelledby="console-title">
         <h2 id="console-title" class="panel-title">Input</h2>
         <form id="transform-form" class="form" novalidate>
-          <label class="label" for="existing">Existing username <span class="label-hint">your current TikTok @, for reference</span></label>
+          <label class="label" for="existing"
+            >Existing username <span class="label-hint">your current TikTok @, for reference</span></label
+          >
           <div class="field">
             <span class="field-at" aria-hidden="true">@</span>
-            <input id="existing" name="existing" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="current.username" />
+            <input
+              id="existing"
+              name="existing"
+              type="text"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="current.username"
+            />
           </div>
 
-          <label class="label" for="desired">Desired username <span class="label-hint">what your profile should display</span></label>
+          <label class="label" for="desired"
+            >Desired username <span class="label-hint">what your profile should display</span></label
+          >
           <div class="field field-big">
             <span class="field-at" aria-hidden="true">@</span>
-            <input id="desired" name="desired" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="k" aria-describedby="messages" />
+            <input
+              id="desired"
+              name="desired"
+              type="text"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              placeholder="k"
+              aria-describedby="messages"
+            />
           </div>
 
           <button id="transform" type="submit" class="btn btn-primary btn-transform">Transform</button>
@@ -45,16 +68,31 @@
         <div id="messages" class="messages" aria-live="polite"></div>
 
         <ol id="pipeline" class="pipeline" aria-label="Engine stages">
-          <li data-stage="analyze"><span class="stage-dot"></span><span class="stage-name">Analyze characters</span><span class="stage-out"></span></li>
-          <li data-stage="search"><span class="stage-dot"></span><span class="stage-name">Search Unicode database</span><span class="stage-out"></span></li>
-          <li data-stage="generate"><span class="stage-dot"></span><span class="stage-name">Generate combinations</span><span class="stage-out"></span></li>
-          <li data-stage="rank"><span class="stage-dot"></span><span class="stage-name">Rank candidates</span><span class="stage-out"></span></li>
+          <li data-stage="analyze">
+            <span class="stage-dot"></span><span class="stage-name">Analyze characters</span
+            ><span class="stage-out"></span>
+          </li>
+          <li data-stage="search">
+            <span class="stage-dot"></span><span class="stage-name">Search Unicode database</span
+            ><span class="stage-out"></span>
+          </li>
+          <li data-stage="generate">
+            <span class="stage-dot"></span><span class="stage-name">Generate combinations</span
+            ><span class="stage-out"></span>
+          </li>
+          <li data-stage="rank">
+            <span class="stage-dot"></span><span class="stage-name">Rank candidates</span
+            ><span class="stage-out"></span>
+          </li>
         </ol>
       </section>
 
       <section class="panel analysis" aria-labelledby="analysis-title">
         <h2 id="analysis-title" class="panel-title">Character analysis</h2>
-        <div id="analysis-empty" class="placeholder">Each character of the desired username is analyzed here: code point, script, normalization and every visible Unicode variant found.</div>
+        <div id="analysis-empty" class="placeholder">
+          Each character of the desired username is analyzed here: code point, script, normalization and every visible
+          Unicode variant found.
+        </div>
         <div id="analysis-tiles" class="tiles" role="tablist" aria-label="Characters"></div>
         <div id="analysis-detail" class="analysis-detail"></div>
       </section>
@@ -69,25 +107,37 @@
             <span class="segmented-label">Sort</span>
             <button type="button" class="seg" data-sort="rank" aria-pressed="true">Rank</button>
             <button type="button" class="seg" data-sort="similarity" aria-pressed="false">Similarity</button>
-            <button type="button" class="seg" data-sort="rendered" aria-pressed="false" title="Ink overlap with the target, drawn with this computer's fonts">Rendered</button>
+            <button
+              type="button"
+              class="seg"
+              data-sort="rendered"
+              aria-pressed="false"
+              title="Ink overlap with the target, drawn with this computer's fonts"
+            >
+              Rendered
+            </button>
             <button type="button" class="seg" data-sort="compatibility" aria-pressed="false">Compatibility</button>
           </div>
-          <label class="toggle"><input id="show-codepoints" type="checkbox" /> <span>Show Unicode code points</span></label>
+          <label class="toggle"
+            ><input id="show-codepoints" type="checkbox" /> <span>Show Unicode code points</span></label
+          >
           <div class="toolbar-actions">
             <button id="copy-all" type="button" class="btn btn-ghost" disabled>Copy all</button>
             <button id="generate-more" type="button" class="btn btn-ghost" disabled>Generate more</button>
             <button id="clear" type="button" class="btn btn-ghost" disabled>Clear</button>
           </div>
         </div>
-        <div id="results-empty" class="placeholder big">Enter a desired username and press <strong>Transform</strong>. Candidates appear here, ranked.</div>
+        <div id="results-empty" class="placeholder big">
+          Enter a desired username and press <strong>Transform</strong>. Candidates appear here, ranked.
+        </div>
         <div id="cards" class="cards"></div>
       </section>
     </main>
 
     <footer class="footnote">
       Runs locally. Never asks for or stores passwords, cookies, session IDs or tokens, and never calls TikTok's API.
-      TikTok decides whether a username is valid and available, so no candidate is guaranteed to work. Not affiliated with TikTok.
-      Don't use look-alike usernames to impersonate other people or brands.
+      TikTok decides whether a username is valid and available, so no candidate is guaranteed to work. Not affiliated
+      with TikTok. Don't use look-alike usernames to impersonate other people or brands.
     </footer>
 
     <dialog id="submit-dialog" class="dialog" aria-labelledby="dialog-title">
@@ -95,13 +145,20 @@
       <h2 id="dialog-title">Submit through TikTok</h2>
       <div id="dialog-candidate" class="dialog-candidate"></div>
       <ol class="steps">
-        <li id="step-copy" data-state="pending"><strong>Copy the candidate</strong><div class="step-body"></div></li>
-        <li id="step-open" data-state="pending"><strong>Open TikTok in your browser</strong><div class="step-body"></div></li>
+        <li id="step-copy" data-state="pending">
+          <strong>Copy the candidate</strong>
+          <div class="step-body"></div>
+        </li>
+        <li id="step-open" data-state="pending">
+          <strong>Open TikTok in your browser</strong>
+          <div class="step-body"></div>
+        </li>
         <li data-state="todo">
           <strong>Change it in TikTok</strong>
           <div class="step-body">
             On your profile choose <b>Edit profile</b> → <b>Username</b>, select the current username, paste
-            (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>V</kbd>) and press <b>Save</b>. In the phone app: Profile → Edit profile → Username.
+            (<kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>V</kbd>) and press <b>Save</b>. In the phone app: Profile → Edit profile
+            → Username.
           </div>
         </li>
         <li data-state="todo">

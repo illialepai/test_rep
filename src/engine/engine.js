@@ -62,7 +62,8 @@ function cleanUsername(raw, field, label, maxLength, ucd) {
     notices.push(`The ${label.toLowerCase()} was converted to Unicode NFC (composed) form.`);
     value = nfc;
   }
-  if (WHITESPACE.test(value)) throw new InputError(`${label} can't contain spaces. TikTok usernames are a single word.`, field, "whitespace");
+  if (WHITESPACE.test(value))
+    throw new InputError(`${label} can't contain spaces. TikTok usernames are a single word.`, field, "whitespace");
   const invisible = [...new Set(codePoints(value))].filter((cp) => {
     const gc = ucd.category(cp);
     // Combining marks are fine: they render on the preceding character.
@@ -70,16 +71,26 @@ function cleanUsername(raw, field, label, maxLength, ucd) {
   });
   if (invisible.length) {
     const list = invisible.map((cp) => `${codePointLabel(cp)} ${ucd.name(cp)}`).join(", ");
-    throw new InputError(`${label} contains invisible, control or unassigned characters: ${list}. Enter only characters you can see.`, field, "invisible");
+    throw new InputError(
+      `${label} contains invisible, control or unassigned characters: ${list}. Enter only characters you can see.`,
+      field,
+      "invisible",
+    );
   }
-  if (codePoints(value).length > maxLength) throw new InputError(`${label} is too long (maximum ${maxLength} characters).`, field, "length");
+  if (codePoints(value).length > maxLength)
+    throw new InputError(`${label} is too long (maximum ${maxLength} characters).`, field, "length");
   return { value, notices };
 }
 
 function relationName(entry) {
   switch (entry.relation) {
     case RELATION.CONFUSABLE:
-      if (entry.script === "Common") return entry.category[0] === "N" ? "Digit look-alike" : entry.category[0] === "L" ? "Letter look-alike" : "Symbol look-alike";
+      if (entry.script === "Common")
+        return entry.category[0] === "N"
+          ? "Digit look-alike"
+          : entry.category[0] === "L"
+            ? "Letter look-alike"
+            : "Symbol look-alike";
       return `${entry.script.replaceAll("_", " ")} look-alike`;
     case RELATION.PROTOTYPE:
       return "Plain look-alike";
@@ -94,13 +105,15 @@ function relationName(entry) {
 
 /** Grouping key for "same style everywhere" candidates (all Cyrillic look-alikes, all fullwidth …). */
 function styleKey(entry) {
-  if (entry.relation === RELATION.CONFUSABLE || entry.relation === RELATION.PROTOTYPE) return `look-alike:${entry.script}`;
+  if (entry.relation === RELATION.CONFUSABLE || entry.relation === RELATION.PROTOTYPE)
+    return `look-alike:${entry.script}`;
   return `style:${entry.family}`;
 }
 
 /** Visual family for readability: look-alikes and accented letters draw like plain text. */
 function visualFamily(entry) {
-  if ([RELATION.CONFUSABLE, RELATION.PROTOTYPE, RELATION.DIACRITIC, RELATION.MODIFIED].includes(entry.relation)) return "Plain";
+  if ([RELATION.CONFUSABLE, RELATION.PROTOTYPE, RELATION.DIACRITIC, RELATION.MODIFIED].includes(entry.relation))
+    return "Plain";
   return entry.family;
 }
 
@@ -162,7 +175,8 @@ export class UsernameTransformationEngine {
       edges.sort((a, b) => b.sim - a.sim || a.char.localeCompare(b.char));
       edgesAt[p] = edges.slice(0, perPosition);
       // Combining marks in the desired text (é typed as e + ◌́) are kept as they are.
-      if (ucd.category(K[p].codePointAt(0))[0] === "M") edgesAt[p].push({ to: p + 1, char: K[p], key: K[p], mark: true, sim: 1 });
+      if (ucd.category(K[p].codePointAt(0))[0] === "M")
+        edgesAt[p].push({ to: p + 1, char: K[p], key: K[p], mark: true, sim: 1 });
     }
     targets.forEach((t, i) => {
       edgesAt[bounds[i]]?.push({ to: bounds[i + 1], char: t, key: keys[i], identity: true, sim: 1 });
@@ -218,7 +232,16 @@ export class UsernameTransformationEngine {
     const span = j - i;
     const base = { i, j, span, target, output, edges };
     if (output === target) {
-      return { ...base, identity: true, sim: 1, transformed: 0, label: "Unchanged", styleKey: "plain", families: [...output].map(() => "Plain"), compat: this.meanCompat(output) };
+      return {
+        ...base,
+        identity: true,
+        sim: 1,
+        transformed: 0,
+        label: "Unchanged",
+        styleKey: "plain",
+        families: [...output].map(() => "Plain"),
+        compat: this.meanCompat(output),
+      };
     }
     // Same string after canonical normalization (e + ◌́ for é): not a different username.
     if (output.normalize("NFC") === target.normalize("NFC")) return null;
@@ -239,7 +262,17 @@ export class UsernameTransformationEngine {
     const keyed = edges.filter((e) => e.entry);
     const sk = keyed.length === 1 && span === 1 && edges.length === 1 ? styleKey(keyed[0].entry) : "sequence";
     const scripts = letterScripts(ucd, output);
-    return { ...base, identity: false, sim, transformed: span, label, styleKey: sk, families, scripts, compat: this.meanCompat(output) };
+    return {
+      ...base,
+      identity: false,
+      sim,
+      transformed: span,
+      label,
+      styleKey: sk,
+      families,
+      scripts,
+      compat: this.meanCompat(output),
+    };
   }
 
   meanCompat(str) {
@@ -250,7 +283,7 @@ export class UsernameTransformationEngine {
   /** Additive stand-in for the rank score, used only to order the search. */
   fillerUtility(f, n) {
     const share = f.span / n;
-    const secondary = 1 - SECONDARY_SHARE + SECONDARY_SHARE * SECONDARY_WEIGHTS.characterCompatibility * (f.compat - 1);
+    const secondary = 1 + SECONDARY_SHARE * SECONDARY_WEIGHTS.characterCompatibility * (f.compat - 1);
     return share * Math.log(Math.max(1e-6, f.sim * secondary));
   }
 
@@ -356,7 +389,9 @@ export class UsernameTransformationEngine {
     // Every character transformed, choosing the most similar replacement for each.
     const all = [];
     for (let i = 0; i < n; i++) {
-      const best = fillers[i].filter((f) => f.span === 1 && !f.identity).sort((a, b) => b.sim - a.sim || b.compat - a.compat)[0];
+      const best = fillers[i]
+        .filter((f) => f.span === 1 && !f.identity)
+        .sort((a, b) => b.sim - a.sim || b.compat - a.compat)[0];
       const pick = best ?? fillers[i].find((f) => f.identity);
       if (!pick) return paths;
       all.push(pick);
@@ -468,7 +503,10 @@ export class UsernameTransformationEngine {
       const own = fillers[i].filter((f) => f.j === i + 1 && !f.identity);
       // Splits (m → r + n) multiply out into thousands of combinations; list only the best of them.
       const singles = own.filter((f) => f.edges.length === 1).sort(byQuality);
-      const splits = own.filter((f) => f.edges.length > 1).sort(byQuality).slice(0, 25);
+      const splits = own
+        .filter((f) => f.edges.length > 1)
+        .sort(byQuality)
+        .slice(0, 25);
       own.length = 0;
       own.push(...[...singles, ...splits].sort(byQuality));
       const variants = own.map((f) => {
@@ -498,7 +536,9 @@ export class UsernameTransformationEngine {
           string: e.char,
           codePoint: codePointLabel(e.cp),
           name: e.name,
-          reason: e.excludedReason ?? "Right-to-left character or Arabic digit: it can reorder the username when mixed with left-to-right text.",
+          reason:
+            e.excludedReason ??
+            "Right-to-left character or Arabic digit: it can reorder the username when mixed with left-to-right text.",
         }));
       return {
         ...desc,
@@ -515,10 +555,18 @@ export class UsernameTransformationEngine {
     fillers.forEach((list) => {
       for (const f of list) {
         if (f.identity || f.span < 2) continue;
-        sequences.push({ target: f.target, string: f.output, codePoints: codePoints(f.output).map(codePointLabel), relation: f.label, similarity: round(f.sim) });
+        sequences.push({
+          target: f.target,
+          string: f.output,
+          codePoints: codePoints(f.output).map(codePointLabel),
+          relation: f.label,
+          similarity: round(f.sim),
+        });
       }
     });
-    const unsupported = characters.filter((c) => !c.supported).map((c) => ({ char: c.char, codePoint: c.codePoint, name: c.name }));
+    const unsupported = characters
+      .filter((c) => !c.supported)
+      .map((c) => ({ char: c.char, codePoint: c.codePoint, name: c.name }));
     return { skeleton: ctx.K.join(""), characters, sequences, unsupported };
   }
 
@@ -537,7 +585,11 @@ export class UsernameTransformationEngine {
 
     const ctx = this.buildContext(desired, depth);
     const fillers = this.spanFillers(ctx);
-    const paths = [...this.beamSearch(ctx, fillers), ...this.singlePaths(ctx, fillers), ...this.uniformPaths(ctx, fillers)];
+    const paths = [
+      ...this.beamSearch(ctx, fillers),
+      ...this.singlePaths(ctx, fillers),
+      ...this.uniformPaths(ctx, fillers),
+    ];
 
     const byNfc = new Map();
     for (const path of paths) {
@@ -553,7 +605,9 @@ export class UsernameTransformationEngine {
     const analysis = this.describeAnalysis(desired);
     const notices = [...desiredInput.notices, ...existingInput.notices];
     if (existingInput.value && existingInput.value.toLowerCase() === desired.toLowerCase())
-      notices.push("Your existing username already is the desired username; candidates below are different strings that look the same.");
+      notices.push(
+        "Your existing username already is the desired username; candidates below are different strings that look the same.",
+      );
 
     return {
       desired,
@@ -570,7 +624,9 @@ export class UsernameTransformationEngine {
 }
 
 export function compareCandidates(a, b) {
-  return b.rankScore - a.rankScore || b.similarity - a.similarity || (a.string < b.string ? -1 : a.string > b.string ? 1 : 0);
+  return (
+    b.rankScore - a.rankScore || b.similarity - a.similarity || (a.string < b.string ? -1 : a.string > b.string ? 1 : 0)
+  );
 }
 
 function round(x, digits = 3) {
