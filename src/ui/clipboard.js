@@ -1,29 +1,34 @@
 /**
- * Copies text exactly as given. The async Clipboard API needs a secure
- * context (https or localhost), so there is a fallback for plain http or
- * older browsers using a hidden textarea and execCommand("copy").
- * Resolves true on success and false on failure, and never throws.
+ * Copies text, trying in order: the async Clipboard API, a hidden-textarea copy, and the local server's
+ * OS clipboard command. Returns { copied, method }.
  */
-export async function copyText(text) {
-  if (navigator.clipboard && window.isSecureContext) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      // Permission denied or document not focused, so try the fallback.
-    }
+export async function copyText(text, serverCopy) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return { copied: true, method: "clipboard" };
+  } catch {
+    // Not permitted here (no focus, insecure context, old engine); try the next way.
   }
   try {
     const area = document.createElement("textarea");
     area.value = text;
     area.setAttribute("readonly", "");
-    area.style.cssText = "position:fixed;top:0;left:0;opacity:0;pointer-events:none;";
-    document.body.appendChild(area);
+    area.className = "offscreen";
+    document.body.append(area);
     area.select();
     const ok = document.execCommand("copy");
     area.remove();
-    return ok;
+    if (ok) return { copied: true, method: "execCommand" };
   } catch {
-    return false;
+    // fall through
   }
+  if (serverCopy) {
+    try {
+      const result = await serverCopy(text);
+      if (result.copied) return { copied: true, method: result.method };
+    } catch {
+      // fall through
+    }
+  }
+  return { copied: false, method: null };
 }

@@ -1,13 +1,22 @@
 {
-  "name": "tiktok-username-font-generator",
-  "version": "1.0.0",
-  "description": "Generate copyable Unicode styles for a TikTok @username, with compatibility checks.",
+  "name": "tiktok-username-transformation-machine",
+  "version": "2.0.0",
+  "description": "Desktop utility: enter the username you want TikTok to display and get different underlying Unicode strings that look like it, ranked, with code points.",
   "private": true,
   "type": "module",
+  "bin": {
+    "username-machine": "bin/machine.mjs"
+  },
+  "engines": {
+    "node": ">=18.17"
+  },
   "scripts": {
-    "start": "node scripts/serve.mjs",
-    "test": "node --test tests/core.test.js",
-    "test:e2e": "node tests/e2e.mjs"
+    "start": "node bin/machine.mjs",
+    "start:tab": "node bin/machine.mjs --browser-tab",
+    "serve": "node bin/machine.mjs --no-window",
+    "test": "node --test",
+    "test:e2e": "node tests/e2e.mjs",
+    "test:all": "node --test && node tests/e2e.mjs"
   },
   "license": "MIT"
 }
