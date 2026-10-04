@@ -1,0 +1,13 @@
+{
+  "name": "tiktok-username-font-generator",
+  "version": "1.0.0",
+  "description": "Generate copyable Unicode styles for a TikTok @username, with compatibility checks.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/core.test.js",
+    "test:e2e": "node tests/e2e.mjs"
+  },
+  "license": "MIT"
+}

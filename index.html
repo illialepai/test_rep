@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Username Font Generator</title>
+    <meta
+      name="description"
+      content="Turn your TikTok @username into copyable Unicode styles, with a compatibility check for each one."
+    />
+    <meta name="theme-color" content="#0b0b0f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Noto Sans Math gives consistent glyphs for 𝐛𝐨𝐥𝐝 / 𝔣𝔯𝔞𝔨𝔱𝔲𝔯 etc. The app still works offline using system fonts. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Math&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="src/styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23fe2c55'/%3E%3Ctext x='16' y='23' font-size='20' font-family='Arial' font-weight='700' text-anchor='middle' fill='white'%3E@%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div class="glow" aria-hidden="true"></div>
+
+    <header class="site-head">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">@</span>
+        <span class="brand-text">Username Fonts</span>
+      </div>
+      <a class="head-link" href="#how">How to apply</a>
+    </header>
+
+    <main class="wrap">
+      <section class="hero">
+        <p class="eyebrow">For your TikTok @username</p>
+        <h1>Username Font Generator</h1>
+        <p class="lead">
+          Type your username, pick a style and copy the real Unicode characters. Then paste it into
+          <strong>Profile → Edit profile → Username</strong>.
+        </p>
+      </section>
+
+      <section class="panel" aria-labelledby="input-label">
+        <form id="gen-form" class="gen-form" novalidate>
+          <label id="input-label" for="username" class="field-label">Enter your username</label>
+          <div class="field-row">
+            <div class="field">
+              <span class="field-at" aria-hidden="true">@</span>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                placeholder="username"
+                autocomplete="off"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                inputmode="text"
+                aria-describedby="messages counter hint"
+              />
+              <span id="counter" class="counter" aria-live="polite">0/24</span>
+            </div>
+            <button type="submit" class="btn btn-primary btn-generate">Generate</button>
+          </div>
+          <p id="hint" class="hint">Letters a–z, numbers, _ and . · 2–24 characters · press <kbd>/</kbd> to focus</p>
+          <div id="messages" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section id="empty" class="empty">
+        <p>Your styled usernames will appear here.</p>
+      </section>
+
+      <section id="results" class="results" hidden aria-labelledby="results-title">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <h2 id="results-title" class="results-title">Username styles</h2>
+            <span id="summary" class="summary"></span>
+          </div>
+          <div id="copy-all-slot"></div>
+        </div>
+        <div id="filters" class="filters" role="radiogroup" aria-label="Filter by compatibility"></div>
+        <p class="legend">
+          Statuses are an estimate from each character's Unicode properties against TikTok's rule (letters, numbers, _
+          and periods). TikTok decides when you save, so no style is guaranteed.
+        </p>
+        <div id="grid" class="grid"></div>
+      </section>
+
+      <section id="how" class="panel how" aria-labelledby="how-title">
+        <h2 id="how-title">Apply it to TikTok</h2>
+        <ol class="steps">
+          <li>
+            <span>Copy a generated username. Click it or press <b>Copy</b>.</span>
+          </li>
+          <li><span>Open the TikTok app.</span></li>
+          <li>
+            <span>Go to <b>Profile</b>.</span>
+          </li>
+          <li>
+            <span>Tap <b>Edit profile</b>.</span>
+          </li>
+          <li>
+            <span>Tap <b>Username</b>.</span>
+          </li>
+          <li><span>Clear the field and paste the generated username.</span></li>
+          <li>
+            <span>Tap <b>Save</b>. If TikTok rejects it, try a style marked <i>Likely compatible</i>.</span>
+          </li>
+        </ol>
+        <p class="fine">
+          TikTok lets you change your username once every 30 days. This tool never asks for or stores your TikTok login,
+          and it doesn't connect to TikTok. Everything runs in your browser.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-foot">
+      Not affiliated with TikTok. Unicode styles may display differently on some devices.
+    </footer>
+
+    <dialog id="apply-dialog" class="dialog" aria-labelledby="apply-title">
+      <div class="dialog-body">
+        <h2 id="apply-title">Apply to TikTok</h2>
+        <p class="dialog-sub">This username has been copied to your clipboard:</p>
+        <div class="dialog-handle"><span class="at">@</span><span id="apply-handle"></span></div>
+        <div id="apply-status"></div>
+        <ol class="steps steps-compact">
+          <li>
+            <span>Open TikTok → <b>Profile</b></span>
+          </li>
+          <li>
+            <span><b>Edit profile</b> → <b>Username</b></span>
+          </li>
+          <li>
+            <span>Paste it, then tap <b>Save</b></span>
+          </li>
+        </ol>
+        <div class="dialog-actions">
+          <button id="apply-copy" type="button" class="btn btn-secondary"><span>Copy again</span></button>
+          <button id="apply-close" type="button" class="btn btn-primary">Done</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="src/app.js"></script>
+  </body>
+</html>
